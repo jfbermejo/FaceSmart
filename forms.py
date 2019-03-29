@@ -52,3 +52,20 @@ class RegisterForm(FlaskForm): # hereda de FlaskForm
             DataRequired(),
         ]
     )
+
+
+class LoginForm(FlaskForm):
+    email = StringField(
+        'Email',
+        validators=[
+            DataRequired(),
+            Email()
+        ]
+    )
+
+    password = PasswordField(
+        'Password',
+        validators=[
+            DataRequired()
+        ]
+    )
