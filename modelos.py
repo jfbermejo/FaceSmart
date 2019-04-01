@@ -14,7 +14,10 @@ class User(UserMixin, Model):
 
     class Meta:
         database = DATABASE
-        order_by = '-joined_at'
+        order_by = ('-joined_at',)
+
+    def get_posts(self):
+        return Post.select().where(Post.user == self)
 
     # Creamos un método de la clase para crear el usuario invocando desde la clase
     @classmethod
@@ -28,6 +31,23 @@ class User(UserMixin, Model):
         except IntegrityError:
             # raise ValueError('User already exists')
             pass
+
+
+class Post(Model):
+    user = ForeignKeyField(
+        User,
+        related_name='posts',
+    )
+
+    timestamp = DateTimeField(
+        default=datetime.datetime.now
+    )
+
+    content = TextField()
+
+    class Meta:
+        database = DATABASE
+        order_by = ('-joined_at',)
 
 
 def initialize():

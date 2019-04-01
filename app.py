@@ -1,6 +1,6 @@
 from flask import Flask, g, render_template, flash, url_for, redirect
 from flask_bcrypt import check_password_hash
-from flask_login import LoginManager, login_user, login_required, logout_user
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 import modelos
 import forms
 
@@ -36,6 +36,7 @@ def before_request():
     g.db = modelos.DATABASE
     if g.db.is_closed():  # Comprueba que la conexión no está abierta
         g.db.connect()
+        g.user = current_user # Apunta al usuario actual
 
 
 @app.after_request
@@ -43,11 +44,6 @@ def after_request(response):
     """"Cierra la conexión a la base de datos"""
     g.db.close()
     return response
-
-
-@app.route('/')
-def index():
-    return 'Hey'
 
 
 @app.route('/register', methods=('GET', 'POST'))
@@ -86,6 +82,22 @@ def logout():
     logout_user()
     flash('Has salido de FaceSmash', 'success')
     return redirect(url_for('index'))
+
+
+@app.route('/new_post', methods=('GET', 'POST'))
+def post():
+    form = forms.PostForm()
+    if form.validate_on_submit():
+        modelos.Post.create(user=g.user._getcurrent_object(),
+                            content=form.content.data.strip())
+        flash('Mensaje publicado!', 'success')
+        return redirect(url_for('index'))
+    return render_template('post.html', form=form)
+
+
+@app.route('/')
+def index():
+    return 'Hey'
 
 
 if __name__ == '__main__':
